@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pekiştirmeli Öğrenme ile Dinamik İnsülin Dozu Ayarı · Yiğit Kalaycıoğlu</title>
+  <meta name="description" content="Hiperglisemi hastalarında kan şekerini güvenli aralıkta tutmak için doz kararı veren REINFORCE ajanı: veriden kurulan simülasyon ortamı, PyTorch politika ağı, 10.000 epizot eğitim.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><div class="in">
+    <a class="home" href="https://yigitkalaycioglu.github.io/">← Yiğit Kalaycıoğlu</a>
+    <span class="sp"></span>
+    <a class="gh" href="https://github.com/yigitkalaycioglu/Autonomous-Diabetes-Management-Reinforcement-Learning-Based-Drug-Dose-Optimization">GitHub'da kaynak kod</a>
+  </div></header>
+
+  <main class="wrap">
+    <div class="hero">
+      <p class="kicker">Sakarya Üniversitesi · ISE 427 Tıpta Yapay Zeka · 2025–2026 Güz</p>
+      <h1>Pekiştirmeli öğrenme ile dinamik insülin dozu ayarı</h1>
+      <p class="lead">Hiperglisemi hastalarında kan şekerini güvenli aralıkta tutmak için her adımda "dozu azalt / koru / artır" kararını veren bir REINFORCE ajanı. Gerçek hastalar üzerinde deneme yapılamayacağı için önce veriden bir simülasyon ortamı kurdum, ajanı bu ortamda eğittim.</p>
+      <ul class="tags"><li>Python</li><li>PyTorch</li><li>Gymnasium</li><li>scikit-learn</li><li>REINFORCE</li></ul>
+      <div class="actions">
+        <a class="btn primary" href="notebooks/EDA_Diabetes_Prediction.html"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/></svg>Keşifsel analiz</a>
+        <a class="btn" href="https://github.com/yigitkalaycioglu/Autonomous-Diabetes-Management-Reinforcement-Learning-Based-Drug-Dose-Optimization/raw/main/rapor.docx"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>Rapor (DOCX)</a>
+        <a class="btn" href="https://github.com/yigitkalaycioglu/Autonomous-Diabetes-Management-Reinforcement-Learning-Based-Drug-Dose-Optimization/raw/main/sunum.pptx"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14"/></svg>Sunum (PPTX)</a>
+        <a class="btn" href="https://github.com/yigitkalaycioglu/Autonomous-Diabetes-Management-Reinforcement-Learning-Based-Drug-Dose-Optimization"><svg viewBox="0 0 24 24"><path d="M9 19c-4 1.3-4-2-6-2.5m12 4.5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>Kaynak kod</a>
+      </div>
+      <div class="metrics">
+        <div class="metric"><b>10.000</b><span>eğitim epizodu</span></div>
+        <div class="metric"><b>−448 → 296</b><span>ortalama ödül (başlangıç → kararlı)</span></div>
+        <div class="metric"><b>105–114</b><span>test hastasında tutulan aralık (mg/dL)</span></div>
+        <div class="metric"><b>6 → 128 → 128 → 3</b><span>politika ağı (ReLU, softmax)</span></div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Yaklaşım</h2>
+      <p>Kaggle'daki Diabetes Prediction Dataset 100.000 hastanın tek bir andaki değerlerini içeriyor (yaş, cinsiyet, BMI, HbA1c, kan şekeri, hipertansiyon, kalp hastalığı, sigara). Zaman serisi olmadığı için önce glukozun bir eyleme nasıl tepki vereceğini tahmin eden bir model eğittim, ortamı bu modelin üstüne kurdum.</p>
+      <div class="grid4">
+        <div class="card"><h3>1 · Veri hazırlığı</h3><p>Veri temizlenip ölçekleniyor; RL için ayrı bir veri ve ölçekleyici kaydediliyor.</p></div>
+        <div class="card"><h3>2 · Glukoz dinamiği modeli</h3><p>Mevcut glukoz ve uygulanan eylemden glukoz değişimini tahmin eden bir <code>RandomForestRegressor</code>.</p></div>
+        <div class="card"><h3>3 · Simülasyon ortamı</h3><p>Gymnasium tabanlı <code>DiabetesEnv</code>: 6 boyutlu durum (glukoz, HbA1c, yaş, BMI, hipertansiyon, kalp hastalığı), 3 ayrık eylem. Her adımda tahmine küçük bir gürültü eklenir.</p></div>
+        <div class="card"><h3>4 · REINFORCE</h3><p>PyTorch ile policy gradient: Adam, öğrenme oranı 0,001, gamma 0,99, 10.000 epizot.</p></div>
+      </div>
+      <h3>Ödül fonksiyonu</h3>
+      <p>Hedef glukoz 110 mg/dL, bir epizot en fazla 50 adım.</p>
+      <ul class="list">
+        <li>Hedefe uzaklık 15'ten az (95–125 mg/dL): +5; 30'dan az (80–140 mg/dL): +1; daha uzaksa −0,05 × uzaklık</li>
+        <li>"Koru" seçildiğinde 80–140 mg/dL aralığındaysa +2 (gereksiz doz değişikliğini azaltmak için), dışındaysa −1</li>
+        <li>70 mg/dL altı −10; 45 mg/dL altında ek −50 ve epizot biter</li>
+        <li>300 mg/dL üstü −5; 390 mg/dL üstünde ek −20 ve epizot biter</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Sonuçlar</h2>
+      <figure class="card"><img src="img/training_plot.png" alt="Eğitim boyunca ortalama ödül" loading="lazy"><figcaption>İlk 2.500 epizotta ortalama ödül −448 civarında; ajan sık sık güvenlik sınırlarını aşıyor. 2.500–3.000 arasında doz ile glukoz düşüşü arasındaki ilişkiyi öğreniyor, ödül pozitife dönüyor ve 296 civarında sabitleniyor.</figcaption></figure>
+      <figure class="card" style="margin-top:16px"><img src="img/test_result.png" alt="Test hastasında glukoz seyri" loading="lazy"><figcaption>Test hastasında başlangıç glukozu 127,8 mg/dL. Ajan ilk iki adımda dozu artırıp şekeri 111,7 mg/dL'ye indiriyor, sonraki 48 adımda çoğunlukla "koru" seçerek değeri 105–114 mg/dL arasında tutuyor. Epizodun toplam ödülü 326.</figcaption></figure>
+      <p style="margin-top:16px" class="note">Bu sonuçlar yalnızca bu simülasyon için geçerli. Ortam kesitsel veriden türetildiği için gerçek bir hastanın glukoz dinamiğini temsil etmiyor; klinik bir öneri olarak okunmamalı. Bir sonraki adım olarak sürekli glukoz ölçüm (CGM) verisiyle zaman serisi tabanlı bir model denemek mantıklı olur.</p>
+    </section>
+
+    <section>
+      <h2>Not defteri</h2>
+      <div class="notebooks">
+        <a class="nb" href="notebooks/EDA_Diabetes_Prediction.html"><b>Keşifsel veri analizi</b><span>100.000 hastalık veri setinin dağılımları ve ilişkileri</span></a>
+      </div>
+    </section>
+
+    <footer>
+      Veri seti: <a href="https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset">Diabetes Prediction Dataset (Kaggle)</a>; kendi lisansına tabidir, depodaki MIT lisansı yalnızca kod için geçerlidir.
+    </footer>
+  </main>
+</body>
+</html>

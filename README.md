@@ -2,6 +2,8 @@
 
 Sakarya Üniversitesi ISE 427 Tıpta Yapay Zeka dersi (2025-2026 Güz) dönem projesi. Hiperglisemi hastalarında kan şekerini güvenli aralıkta tutmak için her adımda "dozu azalt / koru / artır" kararını veren bir REINFORCE ajanı eğittim. Gerçek hastalar üzerinde deneme yapılamayacağı için önce veriden bir simülasyon ortamı kurdum, ajanı bu ortamda eğittim.
 
+**Canlı rapor:** https://yigitkalaycioglu.github.io/Autonomous-Diabetes-Management-Reinforcement-Learning-Based-Drug-Dose-Optimization/ — sonuçlar, grafikler ve çıktılarıyla birlikte not defterleri tarayıcıda görüntülenebilir.
+
 ## Yaklaşım
 
 Kaggle'daki Diabetes Prediction Dataset 100.000 hastanın tek bir andaki değerlerini içeriyor (yaş, cinsiyet, BMI, HbA1c, kan şekeri, hipertansiyon, kalp hastalığı, sigara). Zaman serisi olmadığı için önce glukozun bir eyleme nasıl tepki vereceğini tahmin eden bir model eğittim, ortamı bu modelin üstüne kurdum.
